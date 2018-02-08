@@ -81,7 +81,9 @@ class DQN:
             with tf.variable_scope('l1'):
                 w1 = tf.get_variable('w1', [self.n_features, n_l1], initializer=w_initializer, collections=c_names)
                 b1 = tf.get_variable('b1', [1, n_l1], initializer=b_initializer, collections=c_names)
-                l1 = tf.nn.relu(tf.matmul(s, w1) + b1)
+                l0 = tf.nn.relu(tf.matmul(s, w1) + b1)
+                l1 = tf.layers.dense(l0, n_l1, tf.nn.relu)
+
 
             if self.dueling:
                 # Dueling DQN
