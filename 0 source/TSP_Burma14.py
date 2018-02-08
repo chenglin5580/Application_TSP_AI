@@ -7,7 +7,7 @@ import numpy as np
 
 class ENV(object):
     def __init__(self):
-        self.city_location = [[16.47, 96.10],
+        self.city_location =np.array([[16.47, 96.10],
                               [16.47, 94.44],
                               [20.09, 92.54],
                               [22.39, 93.37],
@@ -21,8 +21,8 @@ class ENV(object):
                               [21.52, 95.59],
                               [19.42, 97.13],
                               [20.09, 94.55],
-                              ]
-        self.action_dim = len(self.city_location) - 1
+                              ])
+        self.action_dim = len(self.city_location)
         self.state_dim = self.action_dim
         self.state = self.reset()
         self.action_old = int(0)
@@ -37,7 +37,7 @@ class ENV(object):
         plt.show()
 
     def reset(self):
-        state_ini = -1 * np.ones([self.state_dim])
+        state_ini = 1 * np.ones([self.state_dim])
         state_ini[0] = -1
         return state_ini.copy()
 
@@ -50,7 +50,8 @@ class ENV(object):
         self.state[int(action)] = -1
 
         reward = -1
-        reward -= np.square(self.city_location[action] - self.city_location[self.action_old])
+        delta_location = np.array(self.city_location[action]) - np.array(self.city_location[self.action_old])
+        reward -= np.sum(np.square(delta_location))
 
         delta_sum = np.sum(self.state - -1 * np.ones([self.state_dim]))
         if delta_sum == 0:

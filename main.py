@@ -1,7 +1,5 @@
 from TSP_Burma14 import ENV
 
-import matplotlib.pyplot as plt
-from D3QN import DQN
 import numpy as np
 
 env = ENV()
@@ -57,3 +55,5 @@ if True:
     print('train over')
 else:
     pass
+
+
