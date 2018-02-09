@@ -22,7 +22,7 @@ RL = DQN(n_actions=env.action_dim,
          output_graph=False,
          double=True,
          dueling=True,
-         train=False
+         train=True
          )
 
 
