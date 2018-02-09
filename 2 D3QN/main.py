@@ -38,7 +38,7 @@ if RL.train:
         step = 0
         observation = env.reset()  # initial observation
         while True:
-            action = RL.choose_action(observation)               # RL choose action based on observation
+            action = RL.choose_action(observation, env)               # RL choose action based on observation
             # action_index = [i for i in range(env.action_dim) if env.state[i] != -1]
             # action = np.random.choice(action_index)
             observation_, reward, done, info = env.step(action)  # RL get next observation and reward

@@ -48,23 +48,29 @@ class ENV(object):
 
         action = int(action)
 
-        self.state[action] = -1
-
-        reward = 0
-        if action == self.action_old:
-            reward -= 500
+        reward_penalty = 0
+        distance = 0
+        if self.state[action] == -1:
+            reward_penalty = 500
         else:
             delta_location = np.array(self.city_location[action]) - np.array(self.city_location[self.action_old])
-            reward -= np.sqrt(np.sum(np.square(delta_location)))
+            distance = np.sqrt(np.sum(np.square(delta_location)))
+
+        self.state[action] = -1
 
         delta_sum = np.sum(self.state + 1 * np.ones([self.state_dim]))
         if delta_sum == 0:
             delta_location = np.array(self.city_location[action]) - np.array(self.city_location[0])
-            reward -= np.sqrt(np.sum(np.square(delta_location)))
+            distance += np.sqrt(np.sum(np.square(delta_location)))
             # reward -= np.sqrt(np.sum(np.square(self.city_location[action] - self.city_location[0])))
             done = True
         else:
             done = False
+
+        reward = -(reward_penalty + distance) / 10
+        info = {}
+        info["distance"] = distance
+
         self.action_old = action
 
-        return self.state.copy(), reward/10, done, []
+        return self.state.copy(), reward, done, info
