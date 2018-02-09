@@ -23,7 +23,7 @@ class DQN:
             n_features,  # 状态个数
             learning_rate=0.001,
             replace_target_iter=200,  # 更新目标网络代数
-            memory_size=500,  # 记忆池数量
+            memory_size=2000,  # 记忆池数量
             batch_size=32,  # 每次更新数目
             output_graph=False,
             sess=None,

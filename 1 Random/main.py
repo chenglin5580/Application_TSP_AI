@@ -24,7 +24,7 @@ for step in range(500):
     trajectory_record[step+1, 0] = env.city_location[action][0]
     trajectory_record[step+1, 1] = env.city_location[action][1]
     observation_, reward, done, info = env.step(action)  # RL get next observation and reward
-    ep_reward += reward
+    ep_reward += info["distance"]
     print('reward', reward)
 
     # swap observation

@@ -67,7 +67,7 @@ class ENV(object):
         else:
             done = False
 
-        reward = -(reward_penalty + distance) / 10
+        reward = -(reward_penalty + distance)
         info = {}
         info["distance"] = distance
 

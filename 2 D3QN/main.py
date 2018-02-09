@@ -13,7 +13,7 @@ env = ENV()
 
 RL = DQN(n_actions=env.action_dim,
          n_features=env.state_dim,
-         learning_rate=0.001,
+         learning_rate=0.0001,
          gamma=0.9,
          e_greedy_end=0.1,
          memory_size=3000,
@@ -22,8 +22,9 @@ RL = DQN(n_actions=env.action_dim,
          output_graph=False,
          double=True,
          dueling=True,
-         # train=False,
-         train=True
+         units=100,
+         train=False,
+         # train=True
          )
 
 
@@ -32,7 +33,7 @@ if RL.train:
 # if True:
     step = 0
     ep_reward = 0
-    episodes = 5000
+    episodes = 20000
     for episode in range(episodes):
         ep_reward = 0
         step = 0
