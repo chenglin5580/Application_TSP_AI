@@ -22,7 +22,8 @@ RL = DQN(n_actions=env.action_dim,
          output_graph=False,
          double=True,
          dueling=True,
-         train=True
+         train=False,
+         # train=True
          )
 
 
@@ -63,7 +64,7 @@ else:
     trajectory_record = np.zeros([500, 2])
     trajectory_record[0, 0] = env.city_location[0][0]
     trajectory_record[0, 1] = env.city_location[0][1]
-    ep_reward = 0
+    distance = 0
     observation = env.reset()  # initial observation
     step = 0
     for step in range(500):
@@ -71,7 +72,7 @@ else:
         trajectory_record[step + 1, 0] = env.city_location[action][0]
         trajectory_record[step + 1, 1] = env.city_location[action][1]
         observation_, reward, done, info = env.step(action)  # RL get next observation and reward
-        ep_reward += reward
+        distance += info["distance"]
         print('reward', reward)
 
         # swap observation
@@ -86,6 +87,7 @@ else:
         # break while loop when end of this episode
         if done:
             print(step)
+            print(distance)
             break
 
 
