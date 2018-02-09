@@ -25,6 +25,7 @@ for step in range(500):
     trajectory_record[step+1, 1] = env.city_location[action][1]
     observation_, reward, done, info = env.step(action)  # RL get next observation and reward
     ep_reward += reward
+    print('reward', reward)
 
     # swap observation
     observation = observation_
@@ -33,11 +34,12 @@ for step in range(500):
         plt.scatter(env.city_location[i][0], env.city_location[i][1])
     plt.plot(trajectory_record[:step+2, 0], trajectory_record[:step+2, 1])
     plt.show()
-    plt.pause(1)
+    plt.pause(0.1)
 
     # break while loop when end of this episode
     if done:
         print(step)
+        print(ep_reward)
         break
 
 

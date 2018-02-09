@@ -84,7 +84,6 @@ class DQN:
                 l0 = tf.nn.relu(tf.matmul(s, w1) + b1)
                 l1 = tf.layers.dense(l0, n_l1, tf.nn.relu)
 
-
             if self.dueling:
                 # Dueling DQN
                 with tf.variable_scope('Value'):
@@ -137,14 +136,24 @@ class DQN:
         self.memory[index, :] = transition
         self.memory_counter += 1
 
-    def choose_action(self, observation):
+    def choose_action(self, observation, env=None):
         observation = observation[np.newaxis, :]
-        if not self.train or np.random.uniform() > self.epsilon:  # choosing action
-            actions_value = self.sess.run(self.q_eval, feed_dict={self.s: observation})
-            action = np.argmax(actions_value)
+        if self.train:
+            if np.random.uniform() > self.epsilon:
+                actions_value = self.sess.run(self.q_eval, feed_dict={self.s: observation})
+                action = np.argmax(actions_value)
+            else:
+                action = np.random.randint(0, self.n_actions)
         else:
-            action = np.random.randint(0, self.n_actions)
+            actions_value = self.sess.run(self.q_eval, feed_dict={self.s: observation})[0]
+            state_tem = env.state.copy()
+            index_valid = [x for x in range(env.action_dim) if state_tem[x] == 1]
+            value_valid = [actions_value[x] for x in index_valid]
+            action_valid = np.argmax(value_valid)
+            action = index_valid[action_valid]
+
         return action
+
 
     def learn(self):
         if self.learn_step_counter % self.replace_target_iter == 0:
