@@ -18,12 +18,12 @@ RL = DQN(n_actions=env.action_dim,
          e_greedy_end=0.1,
          memory_size=3000,
          e_liner_times=10000,
-         batch_size=50,
+         batch_size=200,
          output_graph=False,
          double=True,
          dueling=True,
-         train=False,
-         # train=True
+         # train=False,
+         train=True
          )
 
 
@@ -32,7 +32,7 @@ if RL.train:
 # if True:
     step = 0
     ep_reward = 0
-    episodes = 10000
+    episodes = 5000
     for episode in range(episodes):
         ep_reward = 0
         step = 0
@@ -55,7 +55,10 @@ if RL.train:
             if done:
                 break
             step += 1
-        print('Episode:', episode + 1, '/', episodes, 'step:', step,  ' ep_reward: %.4f' % ep_reward, 'epsilon: %.3f' % RL.epsilon)
+        if episode % 10 == 0:
+            print('Episode:', episode + 1, '/', episodes, 'step:', step, ' ep_reward: %.4f' % ep_reward,
+                  'epsilon: %.3f' % RL.epsilon)
+
     # save net
     RL.net_save()
     # end of game
@@ -82,7 +85,7 @@ else:
             plt.scatter(env.city_location[i][0], env.city_location[i][1])
         plt.plot(trajectory_record[:step + 2, 0], trajectory_record[:step + 2, 1])
         plt.show()
-        plt.pause(1)
+        plt.pause(0.1)
 
         # break while loop when end of this episode
         if done:
