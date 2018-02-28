@@ -13,7 +13,7 @@ RL = DQN(n_actions=env.action_dim,
          n_features=env.state_dim,
          learning_rate=0.001,
          gamma=0.9,
-         e_greedy_end=0.2,
+         e_greedy_end=0.1,
          memory_size=3000,
          e_liner_times=10000,
          batch_size=64,
@@ -21,8 +21,8 @@ RL = DQN(n_actions=env.action_dim,
          double=True,
          dueling=True,
          units=10,
-         train=False,
-         # train=True
+         # train=False,
+         train=True
          )
 
 # train part
