@@ -21,8 +21,8 @@ RL = DQN(n_actions=env.action_dim,
          double=True,
          dueling=True,
          units=10,
-         # train=False,
-         train=True
+         train=False,
+         # train=True
          )
 
 # train part
@@ -30,7 +30,7 @@ if RL.train:
     # if True:
     step = 0
     ep_reward = 0
-    episodes = 30000
+    episodes = 10000
     for episode in range(episodes):
         ep_reward = 0
         distance_all = 0
@@ -45,7 +45,7 @@ if RL.train:
             observation_, reward, done, info = env.step(action)  # RL get next observation and reward
             ep_reward += reward
             distance_all += info["distance"]
-            RL.store_transition(observation, action, reward, observation_)  # store memory
+            RL.store_transition(observation, action, reward, observation_, done)  # store memory
 
             if RL.memory_counter > RL.memory_size:
             # if RL.memory_counter > RL.memory_size:

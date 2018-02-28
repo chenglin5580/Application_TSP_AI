@@ -57,7 +57,7 @@ class DQN:
         self.train = train
 
         self.learn_step_counter = 0
-        self.memory = np.zeros((self.memory_size, n_features * 2 + 2))
+        self.memory = np.zeros((self.memory_size, n_features * 2 + 2 + 1))
         # self.memory_op = np.zeros((self.memory_size, n_features * 2 + 2))
         self._build_net()
         t_params = tf.get_collection('target_net_params')
@@ -131,10 +131,10 @@ class DQN:
 
             self.q_next = build_layers(self.s_, c_names, n_l1, w_initializer, b_initializer)
 
-    def store_transition(self, s, a, r, s_):
+    def store_transition(self, s, a, r, s_, done):
         if not hasattr(self, 'memory_counter'):
             self.memory_counter = 0
-        transition = np.hstack((s, [a, r], s_))
+        transition = np.hstack((s, [a, r], s_, done))
         index = self.memory_counter % self.memory_size
         self.memory[index, :] = transition
         self.memory_counter += 1
@@ -178,7 +178,9 @@ class DQN:
         batch_state = batch_memory[:, :self.n_features]
         batch_action = batch_memory[:, self.n_features].astype(int)
         batch_reward = batch_memory[:, self.n_features + 1]
-        batch_state_next = batch_memory[:, -self.n_features:]
+        batch_state_next = batch_memory[:, -self.n_features-1:-1]
+        batch_done = batch_memory[:, -1]
+
 
         if self.double == False:
             q_next = self.sess.run(self.q_next, feed_dict={self.s_: batch_state_next}) # next observation
@@ -196,7 +198,8 @@ class DQN:
             batch_action_withMaxQ = np.argmax(q_next1, axis=1)
             batch_index = np.arange(self.batch_size, dtype=np.int32)
             q_next_Max = q_next2[batch_index, batch_action_withMaxQ]
-            q_target[batch_index, batch_action] = batch_reward + self.gamma * q_next_Max
+            q_target[batch_index, batch_action] = batch_reward + (1-batch_done)*self.gamma * q_next_Max
+            # q_target[batch_index, batch_action] = batch_reward + self.gamma * q_next_Max
         _, self.cost = self.sess.run([self._train_op, self.loss],
                                      feed_dict={self.s: batch_state,
                                                 self.q_target: q_target})
