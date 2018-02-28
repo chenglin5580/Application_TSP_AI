@@ -58,6 +58,7 @@ class DQN:
 
         self.learn_step_counter = 0
         self.memory = np.zeros((self.memory_size, n_features * 2 + 2))
+        # self.memory_op = np.zeros((self.memory_size, n_features * 2 + 2))
         self._build_net()
         t_params = tf.get_collection('target_net_params')
         e_params = tf.get_collection('eval_net_params')
@@ -82,7 +83,9 @@ class DQN:
                 w1 = tf.get_variable('w1', [self.n_features, n_l1], initializer=w_initializer, collections=c_names)
                 b1 = tf.get_variable('b1', [1, n_l1], initializer=b_initializer, collections=c_names)
                 l0 = tf.nn.relu(tf.matmul(s, w1) + b1)
-                lout = tf.layers.dense(l0, n_l1, tf.nn.relu)
+                l1 = tf.layers.dense(l0, n_l1, tf.nn.relu)
+                lout = tf.layers.dense(l1, n_l1, tf.nn.relu)
+
 
             if self.dueling:
                 # Dueling DQN
