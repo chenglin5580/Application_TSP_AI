@@ -15,13 +15,13 @@ class ENV(object):
                                        [25.23, 97.24],
                                        [22.00, 96.05],
                                        [20.47, 97.02],
-                                       [17.20, 96.29],
-                                       [16.30, 97.38],
-                                       [14.05, 98.12],
-                                       [16.53, 97.38],
-                                       [21.52, 95.59],
-                                       [19.42, 97.13],
-                                       [20.09, 94.55],
+                                       # [17.20, 96.29],
+                                       # [16.30, 97.38],
+                                       # [14.05, 98.12],
+                                       # [16.53, 97.38],
+                                       # [21.52, 95.59],
+                                       # [19.42, 97.13],
+                                       # [20.09, 94.55],
                                        ])
         self.action_dim = len(self.city_location)
         self.state_dim = self.action_dim
@@ -67,7 +67,8 @@ class ENV(object):
         else:
             done = False
 
-        reward = -(reward_penalty + distance)
+        reward = (-(reward_penalty + distance) + 26/6)
+        # reward = -(reward_penalty + distance)
         info = {}
         info["distance"] = distance
 

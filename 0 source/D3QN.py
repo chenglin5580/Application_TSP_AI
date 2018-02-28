@@ -12,8 +12,8 @@ import numpy as np
 import tensorflow as tf
 import sys
 
-np.random.seed(1)
-tf.set_random_seed(1)
+# np.random.seed(2)
+# tf.set_random_seed(2)
 
 
 class DQN:
@@ -82,19 +82,19 @@ class DQN:
                 w1 = tf.get_variable('w1', [self.n_features, n_l1], initializer=w_initializer, collections=c_names)
                 b1 = tf.get_variable('b1', [1, n_l1], initializer=b_initializer, collections=c_names)
                 l0 = tf.nn.relu(tf.matmul(s, w1) + b1)
-                l1 = tf.layers.dense(l0, n_l1, tf.nn.relu)
+                lout = tf.layers.dense(l0, n_l1, tf.nn.relu)
 
             if self.dueling:
                 # Dueling DQN
                 with tf.variable_scope('Value'):
                     w2 = tf.get_variable('w2', [n_l1, 1], initializer=w_initializer, collections=c_names)
                     b2 = tf.get_variable('b2', [1, 1], initializer=b_initializer, collections=c_names)
-                    self.V = tf.matmul(l1, w2) + b2
+                    self.V = tf.matmul(lout, w2) + b2
 
                 with tf.variable_scope('Advantage'):
                     w2 = tf.get_variable('w2', [n_l1, self.n_actions], initializer=w_initializer, collections=c_names)
                     b2 = tf.get_variable('b2', [1, self.n_actions], initializer=b_initializer, collections=c_names)
-                    self.A = tf.matmul(l1, w2) + b2
+                    self.A = tf.matmul(lout, w2) + b2
 
                 with tf.variable_scope('Q'):
                     out = self.V + (self.A - tf.reduce_mean(self.A, axis=1, keep_dims=True))  # Q = V(s) + A(s,a)
@@ -102,7 +102,7 @@ class DQN:
                 with tf.variable_scope('Q'):
                     w2 = tf.get_variable('w2', [n_l1, self.n_actions], initializer=w_initializer, collections=c_names)
                     b2 = tf.get_variable('b2', [1, self.n_actions], initializer=b_initializer, collections=c_names)
-                    out = tf.matmul(l1, w2) + b2
+                    out = tf.matmul(lout, w2) + b2
 
             return out
 
