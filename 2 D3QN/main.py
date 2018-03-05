@@ -77,8 +77,8 @@ else:
     step_his = []
     for step in range(500):
         action = RL.choose_action(observation, env)  # RL choose action based on observation
-        if step == 3:
-            action = 4
+        # if step == 3:
+        #     action = 4
         step_his.append(action)
         trajectory_record[step + 1, 0] = env.city_location[action][0]
         trajectory_record[step + 1, 1] = env.city_location[action][1]
