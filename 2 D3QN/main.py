@@ -20,7 +20,7 @@ RL = DQN(n_actions=env.action_dim,
          output_graph=False,
          double=True,
          dueling=True,
-         units=10,
+         units=20,
          train=False,
          # train=True
          )
