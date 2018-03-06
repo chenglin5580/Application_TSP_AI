@@ -65,6 +65,8 @@ class A3C:
                 i_name = 'W_%i' % i  # worker name，形如W_1
                 self.workers.append(Worker(i_name, self.GLOBAL_AC, para))  # 添加名字为W_i的worker
         self.actor_saver = tf.train.Saver()
+        self.writer = tf.summary.FileWriter('./log', self.para.SESS.graph)
+        # self.merged = tf.summary.merge_all()
 
     def run(self):
         self.para.SESS.run(tf.global_variables_initializer())
@@ -130,7 +132,7 @@ class ACNet(object):
         if scope == self.para.GLOBAL_NET_SCOPE:  # get global network
             with tf.variable_scope(scope):
                 self.s = tf.placeholder(tf.float32, [None, self.para.N_S], 'S')
-                self.a_prob, self.v, self.a_params, self.c_params = self._build_net(scope)
+                self.a_prob, self.v, self.a_params, self.c_params, self.a_out = self._build_net(scope)
         else:  # worker, local net, calculate losses
             with tf.variable_scope(scope):
                 # 网络引入
@@ -139,7 +141,7 @@ class ACNet(object):
                 self.v_target = tf.placeholder(tf.float32, [None, 1], 'Vtarget')  # 目标价值
 
                 # 网络构建
-                self.a_prob, self.v, self.a_params, self.c_params = self._build_net(scope)
+                self.a_prob, self.v, self.a_params, self.c_params, self.a_out = self._build_net(scope)
 
                 # 价值网络优化
                 td = tf.subtract(self.v_target, self.v, name='TD_error')
@@ -148,7 +150,7 @@ class ACNet(object):
 
                 with tf.name_scope('a_loss'):
                     log_prob = tf.reduce_sum(
-                        tf.log(self.a_prob) * tf.one_hot(self.a_his, self.para.N_A, dtype=tf.float32),
+                        tf.log(self.a_prob+ 1e-5) * tf.one_hot(self.a_his, self.para.N_A, dtype=tf.float32),
                         axis=1, keep_dims=True)
                     exp_v = log_prob * tf.stop_gradient(td)
                     entropy = -tf.reduce_sum(self.a_prob * tf.log(self.a_prob + 1e-5),
@@ -173,14 +175,15 @@ class ACNet(object):
         with tf.variable_scope('actor'):
             l_a1 = tf.layers.dense(self.s, self.para.units_a, tf.nn.relu6, kernel_initializer=w_init, name='la1')
             l_a = tf.layers.dense(l_a1, self.para.units_a, tf.nn.relu6, kernel_initializer=w_init, name='la2')
-            a_prob = tf.layers.dense(l_a, self.para.N_A, tf.nn.softmax, kernel_initializer=w_init, name='ap')
+            a_out = tf.layers.dense(l_a, self.para.N_A, kernel_initializer=w_init, name='ap')
+            a_prob = tf.nn.softmax(a_out)
         with tf.variable_scope('critic'):
             l_c1 = tf.layers.dense(self.s, self.para.units_c, tf.nn.relu6, kernel_initializer=w_init, name='lc1')
             l_c = tf.layers.dense(l_c1, self.para.units_c, tf.nn.relu6, kernel_initializer=w_init, name='lc2')
             v = tf.layers.dense(l_c, 1, kernel_initializer=w_init, name='v')  # state value
         a_params = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope=scope + '/actor')
         c_params = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope=scope + '/critic')
-        return a_prob, v, a_params, c_params
+        return a_prob, v, a_params, c_params, a_out
 
     def update_global(self, feed_dict):  # 函数：执行push动作
         self.para.SESS.run([self.update_a_op, self.update_c_op], feed_dict)  # local grads applies to global net
@@ -226,9 +229,14 @@ class Worker(object):
             ep_r = 0
             for ep_t in range(self.para.MAX_EP_STEP):  # MAX_EP_STEP每个片段的最大个数
                 a = self.AC.choose_action(s, self.env_l)  # 选取动作
+                # if self.name == "W_0":
+                    # print("hhhh")
+                # a_out = self.para.SESS.run(self.AC.a_out, {self.AC.s: s[np.newaxis, :]})
+                # print(self.name, a_out)
+
                 s_, r, done, info = self.env_l.step(a)
 
-                ep_r +=  info["distance"]
+                ep_r += info["distance"]
                 buffer_s.append(s)
                 buffer_a.append(a)
                 buffer_r.append(r)  # normalize
@@ -258,6 +266,8 @@ class Worker(object):
                 s = s_
                 total_step += 1
                 if done:  # 每个片段结束，输出一下结果
+                    if self.name == "W_0":
+                        print("hhhh")
                     self.para.GLOBAL_RUNNING_R.append(ep_r)
                     print(
                         self.name,
