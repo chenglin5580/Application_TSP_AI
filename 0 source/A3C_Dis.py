@@ -65,6 +65,8 @@ class A3C:
                 i_name = 'W_%i' % i  # worker name，形如W_1
                 self.workers.append(Worker(i_name, self.GLOBAL_AC, para))  # 添加名字为W_i的worker
         self.actor_saver = tf.train.Saver()
+        self.merged = tf.summary.merge_all()
+        self.text_writer = tf.summary.FileWriter('./log', self.para.SESS.graph)
 
     def run(self):
         self.para.SESS.run(tf.global_variables_initializer())
@@ -146,6 +148,7 @@ class ACNet(object):
                 with tf.name_scope('c_loss'):
                     self.c_loss = tf.reduce_mean(tf.square(td))
 
+
                 with tf.name_scope('a_loss'):
                     log_prob = tf.reduce_sum(
                         tf.log(self.a_prob) * tf.one_hot(self.a_his, self.para.N_A, dtype=tf.float32),
@@ -155,6 +158,7 @@ class ACNet(object):
                                              axis=1, keep_dims=True)  # encourage exploration
                     self.exp_v = self.para.ENTROPY_BETA * entropy + exp_v
                     self.a_loss = tf.reduce_mean(-self.exp_v)
+                tf.summary.scalar(scope+'loss', self.a_loss)
 
                 with tf.name_scope('local_grad'):
                     self.a_grads = tf.gradients(self.a_loss, self.a_params)  # 计算梯度
@@ -192,13 +196,27 @@ class ACNet(object):
         prob_weights = self.para.SESS.run(self.a_prob, feed_dict={self.s: s[np.newaxis, :]}).reshape(self.para.N_S)
         state_tem = env.state.copy()
         index_valid = [x for x in range(env.action_dim) if state_tem[x] == 1]
-        prob_valid = [prob_weights[x] for x in index_valid] # 有效的prob
+        prob_valid = [prob_weights[x] for x in index_valid]    # 有效的prob
+        # print(prob_valid)
         prob_valid /= np.sum(prob_valid)  # 归一化
         num_valid = prob_valid.shape[0]
+        # if num_valid == 1:
+        #     action = index_valid[0]
+        # else:
+        #     print(prob_valid)
         action_valid = np.random.choice(range(num_valid),
-                                  p=prob_valid.ravel())  # select action w.r.t the actions prob
+                                            p=prob_valid)  # select action w.r.t the actions prob
         action = index_valid[action_valid]
         return action
+
+    # def choose_action_all(self, s, env):  # 函数：选择动作action
+    #     prob_weights = self.para.SESS.run(self.a_prob, feed_dict={self.s: s[np.newaxis, :]}).reshape(self.para.N_S)
+    #     # print(prob_weights)
+    #     action = np.random.choice(range(prob_weights.shape[0]),
+    #                                         p=prob_weights)  # select action w.r.t the actions prob
+    #     return action
+
+
 
     def choose_action_best(self, s, env):  # 函数：选择动作action
         prob_weights = self.para.SESS.run(self.a_prob, feed_dict={self.s: s[np.newaxis, :]}).reshape(self.para.N_S)
@@ -224,11 +242,12 @@ class Worker(object):
         while self.para.GLOBAL_EP < self.para.MAX_GLOBAL_EP:
             s = self.env_l.reset()
             ep_r = 0
+            step_his = []
             for ep_t in range(self.para.MAX_EP_STEP):  # MAX_EP_STEP每个片段的最大个数
                 a = self.AC.choose_action(s, self.env_l)  # 选取动作
+                step_his.append(a)
                 s_, r, done, info = self.env_l.step(a)
-
-                ep_r +=  info["distance"]
+                ep_r += info["distance"]
                 buffer_s.append(s)
                 buffer_a.append(a)
                 buffer_r.append(r)  # normalize
@@ -237,7 +256,8 @@ class Worker(object):
                     if done:
                         v_s_ = 0  # terminal
                     else:
-                        v_s_ = self.para.SESS.run(self.AC.v, {self.AC.s: s_[np.newaxis, :]})[0, 0]
+                        v_s_, self.summary = self.para.SESS.run([self.AC.v, self.merged], {self.AC.s: s_[np.newaxis, :]})[0, 0]
+                        self.test_writer.add_summary(self.summary)
                     buffer_v_target = []
                     for r in buffer_r[::-1]:  # reverse buffer r
                         v_s_ = r + self.para.gamma * v_s_
@@ -258,6 +278,8 @@ class Worker(object):
                 s = s_
                 total_step += 1
                 if done:  # 每个片段结束，输出一下结果
+                    if self.name == 'W_0':
+                        print(step_his)
                     self.para.GLOBAL_RUNNING_R.append(ep_r)
                     print(
                         self.name,
