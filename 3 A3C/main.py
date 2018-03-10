@@ -7,12 +7,12 @@ import matplotlib.pyplot as plt
 
 env = ENV()
 para = A3C.Para(env,
-                units_a=500,
-                units_c=500,
+                units_a=300,
+                units_c=300,
                 MAX_GLOBAL_EP=10000,
-                UPDATE_GLOBAL_ITER=2,
+                UPDATE_GLOBAL_ITER=1,
                 gamma=0.9,
-                ENTROPY_BETA=0.01,
+                ENTROPY_BETA=0.1,
                 LR_A=0.0001,
                 LR_C=0.001,
                 oppo='rand_smart')
